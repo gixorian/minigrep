@@ -10,7 +10,7 @@ depends=()
 makedepends=('rust' 'cargo')
 
 source=("$pkgname-$pkgver.tar.gz::https://github.com/gixorian/minigrep/archive/refs/tags/v${pkgver}.tar.gz")
-sha256sums=('INSERT_REAL_SHA256_HERE')
+sha256sums=('7700b7dddacb7c68cf9bd6e36a44f575b10f27297de07e58a5d06879f4f74f59')
 
 build() {
   cd "$srcdir/$pkgname-$pkgver"
