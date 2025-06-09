@@ -44,7 +44,7 @@ pub fn run(args: Cli) -> Result<(), Box<dyn Error>> {
 
 pub fn version() {
     print!(env!("CARGO_PKG_NAME"));
-    println!("-v{}\n", env!("CARGO_PKG_VERSION"));
+    println!("-v{}", env!("CARGO_PKG_VERSION"));
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
