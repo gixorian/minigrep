@@ -1,6 +1,6 @@
-# Maintainer: Your Name <you@example.com>
+# Maintainer: Goran Borovecki  <goranborovecki1@gmail.com>
 pkgname=minigrep
-pkgver=1.0.0
+pkgver=2.0.0
 pkgrel=1
 pkgdesc="Lightweight version of grep (build from source)"
 arch=('x86_64')
