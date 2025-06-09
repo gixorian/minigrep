@@ -1,78 +1,25 @@
-use std::{env, error::Error, fs, process};
+use clap::Parser;
+use std::{error::Error, fs, path::PathBuf};
 
-pub struct Config {
-    pub query: String,
-    pub file_path: String,
+/// Search for a pattern in a file and display the lines that contain it.
+#[derive(Parser)]
+pub struct Cli {
+    /// The pattern to look for
+    pub pattern: String,
+    /// The path to the file to read
+    pub path: PathBuf,
+    /// Ignore case sensitivity in the data
+    #[arg(short = 'i', long = "ignore-case")]
     pub ignore_case: bool,
 }
 
-impl Config {
-    pub fn process_flags(&mut self, flags: &[&str]) -> Result<(), String> {
-        for &flag in flags {
-            if !flag.starts_with('-') || flag.len() == 1 {
-                return Err(format!("Invalid flag syntax: {flag}"));
-            }
+pub fn run(args: Cli) -> Result<(), Box<dyn Error>> {
+    let contents = fs::read_to_string(args.path)?;
 
-            for ch in flag.chars().skip(1) {
-                match ch {
-                    'i' => self.ignore_case = true,
-                    other => {
-                        return Err(format!("Unknown flag: -{other}"));
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
-
-    pub fn build(args: &[String]) -> Result<Config, &str> {
-        let mut flags: Vec<&str> = Vec::new();
-        let mut main_args = Vec::new();
-
-        if args.len() < 3 {
-            return Err("Not enough arguments");
-        }
-
-        for arg in args {
-            if arg.starts_with("-") {
-                if arg.len() > 1 {
-                    flags.push(arg);
-                }
-            } else {
-                main_args.push(arg);
-            }
-        }
-
-        if main_args.len() < 3 {
-            return Err("Not enough arguments");
-        }
-
-        let query = main_args[1].clone();
-        let file_path = main_args[2].clone();
-        let ignore_case = env::var("IGNORE_CASE").is_ok();
-
-        let mut cfg = Config {
-            query,
-            file_path,
-            ignore_case,
-        };
-
-        if let Err(e) = cfg.process_flags(&flags) {
-            eprintln!("Failed processing flags.\n{e}");
-            process::exit(1);
-        }
-
-        Ok(cfg)
-    }
-}
-
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    let contents = fs::read_to_string(config.file_path)?;
-
-    let results = if config.ignore_case {
-        search_case_insensitive(&config.query, &contents)
+    let results = if args.ignore_case {
+        search_case_insensitive(&args.pattern, &contents)
     } else {
-        search(&config.query, &contents)
+        search(&args.pattern, &contents)
     };
 
     for line in results {
@@ -83,24 +30,17 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-    for line in contents.lines() {
-        if line.contains(query) {
-            results.push(line);
-        }
-    }
-    results
+    contents
+        .lines()
+        .filter(|line| line.contains(query))
+        .collect()
 }
 
 pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let query = query.to_lowercase();
-    let mut results = Vec::new();
-    for line in contents.lines() {
-        if line.to_lowercase().contains(&query) {
-            results.push(line);
-        }
-    }
-    results
+    contents
+        .lines()
+        .filter(|&line| line.to_lowercase().contains(&query.to_lowercase()))
+        .collect()
 }
 
 #[cfg(test)]
