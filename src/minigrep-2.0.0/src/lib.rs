@@ -5,34 +5,21 @@ use std::{error::Error, fs, path::PathBuf};
 #[derive(Parser)]
 pub struct Cli {
     /// The pattern to look for
-    #[arg(required_unless_present = "version")]
-    pub pattern: Option<String>,
-
+    pub pattern: String,
     /// The path to the file to read
-    #[arg(required_unless_present = "version")]
-    pub path: Option<PathBuf>,
-
+    pub path: PathBuf,
     /// Ignore case sensitivity in the data
     #[arg(short = 'i', long = "ignore-case")]
     pub ignore_case: bool,
-
-    /// Display current version information and exit
-    #[arg(short = 'v', long = "version")]
-    pub version: bool,
 }
 
 pub fn run(args: Cli) -> Result<(), Box<dyn Error>> {
-    if args.version {
-        version();
-        return Ok(());
-    }
-
-    let contents = fs::read_to_string(args.path.unwrap())?;
+    let contents = fs::read_to_string(args.path)?;
 
     let results = if args.ignore_case {
-        search_case_insensitive(&args.pattern.unwrap(), &contents)
+        search_case_insensitive(&args.pattern, &contents)
     } else {
-        search(&args.pattern.unwrap(), &contents)
+        search(&args.pattern, &contents)
     };
 
     for line in results {
@@ -40,11 +27,6 @@ pub fn run(args: Cli) -> Result<(), Box<dyn Error>> {
     }
 
     Ok(())
-}
-
-pub fn version() {
-    print!(env!("CARGO_PKG_NAME"));
-    println!("-v{}\n", env!("CARGO_PKG_VERSION"));
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
